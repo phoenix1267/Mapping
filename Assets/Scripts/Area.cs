@@ -1,29 +1,23 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
-using Object = UnityEngine.Object;
 
 [Serializable]
 public class Area
 {
-    private Map owner;
-    private Sprite background;
     [SerializeField] private string spritePath = "";
-    [SerializeField] private List<Door> allDoors = new List<Door>();
-    [SerializeField] private Vector2 locationMap = new Vector2(0, 0);
-    private CustomButton opener;
-    private CustomButton backToHub;
+    [SerializeField] private List<Door> allDoors = new();
+    [SerializeField] private Vector2 locationMap = new(0, 0);
     [SerializeField] private bool isValid = false;
     [SerializeField] private int id = 0;
-
+    private Map owner;
+    private Sprite background;
+    private CustomButton opener;
     private Door selected = null;
-    public Door Selected => selected;
     
+    public Door Selected => selected;
     public Vector2 LocationMap => locationMap;
     public CustomButton Opener => opener;
-    public CustomButton BackToHub => backToHub;
     public bool IsValid => isValid;
     public int ID => id;
     public List<Door> AllDoors => allDoors;
@@ -38,9 +32,7 @@ public class Area
     }
     public Sprite Background => background;
     public Area()
-    {
-        
-    }
+    {}
 
     public Area(Vector2 _pos,int _id)
     {
@@ -56,10 +48,6 @@ public class Area
             allDoors[i].SetOwner(this);
             allDoors[i].CreateButton();
         }
-        backToHub = owner.Owner.AddButton(new Vector2(500, 50), owner.Owner.Hub);
-        backToHub.gameObject.name = "BackToHub";
-        backToHub.onLeftClick.AddListener(Close);
-        backToHub.gameObject.SetActive(false);
         background = TextureLoader.LoadNewSprite(spritePath);
     }
     
@@ -86,7 +74,6 @@ public class Area
     {
         owner.ChangeVisibilityButton(false);
         ChangeBackground();
-        backToHub.gameObject.SetActive(true);
         owner.Owner.SetCurrentArea(this);
         ChangeDoorsVisibility(true);
     }
@@ -96,11 +83,7 @@ public class Area
         if(!owner.Owner.IsEditor)return;
         for (int i = 0; i < allDoors.Count;i++)
             allDoors[i].Remove();
-        //owner.AllAreas.Remove(this);
-        owner.Owner.MyDestroyObject(backToHub.gameObject);
         owner.Owner.MyDestroyObject(opener.gameObject);
-        //owner = null;
-
     }
     
     public void DeleteForButton()
@@ -109,17 +92,13 @@ public class Area
         for (int i = 0; i < allDoors.Count;i++)
             allDoors[i].Remove();
         owner.AllAreas.Remove(this);
-        owner.Owner.MyDestroyObject(backToHub.gameObject);
         owner.Owner.MyDestroyObject(opener.gameObject);
-        //owner = null;
-
     }
     
     public void Close()
     {
         owner.ChangeVisibilityButton(true);
         owner.ChangeBackground();
-        backToHub.gameObject.SetActive(false);
         owner.Owner.SetCurrentArea(null);
         ChangeDoorsVisibility(false);
     }

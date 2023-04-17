@@ -1,18 +1,14 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
-using UnityEngine.UI;
 
 [Serializable]
 public class Map
 {
+    [SerializeField] private List<Area> allAreas = new();
+    [SerializeField,HideInInspector] private string backgroundPath = "";
     private MappingSystem owner;
     private Sprite fullMap;
-
-    [SerializeField] private List<Area> allAreas;
-    [SerializeField] private string backgroundPath = "";
     public List<Area> AllAreas => allAreas;
     public void SetOwner(MappingSystem _owner) => owner = _owner;
 
