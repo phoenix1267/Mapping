@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 1818512205455521144}
   - component: {fileID: 4666497491441691009}
   - component: {fileID: 8528448789986529787}
-  - component: {fileID: 8143502668551571719}
+  - component: {fileID: 6019089768360960946}
   m_Layer: 5
   m_Name: Button
   m_TagString: Untagged
@@ -77,7 +77,7 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
---- !u!114 &8143502668551571719
+--- !u!114 &6019089768360960946
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -86,7 +86,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 5429175202336637206}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Script: {fileID: 11500000, guid: 25bfe589ba888bd4e9266f95f6b23344, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   m_Navigation:
@@ -119,5 +119,14 @@ MonoBehaviour:
   m_Interactable: 1
   m_TargetGraphic: {fileID: 8528448789986529787}
   m_OnClick:
+    m_PersistentCalls:
+      m_Calls: []
+  onLeftClick:
+    m_PersistentCalls:
+      m_Calls: []
+  onRightClick:
+    m_PersistentCalls:
+      m_Calls: []
+  onMiddleClick:
     m_PersistentCalls:
       m_Calls: []

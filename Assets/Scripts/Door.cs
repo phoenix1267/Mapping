@@ -5,7 +5,7 @@ using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UIElements;
 using UnityEngine.UI;
-using Button = UnityEngine.UI.Button;
+//using CustomButton = UnityEngine.UI.CustomButton;
 
 [Serializable]
 public class Door
@@ -14,17 +14,18 @@ public class Door
     [SerializeField] private bool asLink = false;
     [SerializeField] private int linkedAreaID = 0;
     [SerializeField] private Vector2 locationMap = new Vector2(0, 0);
-    private Button teleporter;
+    private CustomButton teleporter;
     public void SetOwner(Area _owner) => owningArea = _owner;
     public Vector2 LocationMap => locationMap;
 
-    public void SetTeleporter(Button _toSet)
+    public void SetTeleporter(CustomButton _toSet)
     {
         teleporter = _toSet;
-        teleporter.onClick.AddListener(Teleport);
+        teleporter.onLeftClick.AddListener(Teleport);
+        teleporter.onRightClick.AddListener(Edit);
     }
 
-    public Button Teleporter
+    public CustomButton Teleporter
     {
         get
         {
@@ -56,13 +57,38 @@ public class Door
             owningArea.Owner.AllAreas[linkedAreaID].Open();
         }
         else
-        {
-            owningArea.SetSelected(this);
-            owningArea.Owner.Owner.RefreshAreaBinder();
-            owningArea.Owner.Owner.PopupBinding.gameObject.SetActive(true);
-            owningArea.Owner.Owner.SetTeleportMode(true);
-            
-        }
+            EditTeleporterDestination();
+        
+    }
+
+    void EditTeleporterDestination()
+    {
+        owningArea.SetSelected(this);
+        owningArea.Owner.Owner.PopupBinding.gameObject.SetActive(true);
+        owningArea.Owner.Owner.RefreshAreaBinder();
+        owningArea.Owner.Owner.SetTeleportMode(true);
+    }
+    
+    void Edit()
+    {
+        if (!owningArea.Owner.Owner.IsEditor)
+            EditTeleporterDestination();
+        else
+            RemoveButton();
+    }
+
+    public void Remove()
+    {
+        //owningArea.AllDoors.Remove(this);
+        owningArea.Owner.Owner.MyDestroyObject(teleporter.gameObject);
+        //owningArea = null;
+    }
+
+    public void RemoveButton()
+    {
+        owningArea.AllDoors.Remove(this);
+        owningArea.Owner.Owner.MyDestroyObject(teleporter.gameObject);
+
     }
     
     public void AddLink(int _id)
@@ -79,8 +105,9 @@ public class Door
     public void CreateButton()
     {
         teleporter = owningArea.Owner.Owner.AddButton(locationMap);
-        teleporter.onClick.AddListener(Teleport);
-        
+        teleporter.gameObject.SetActive(false);
+        teleporter.onLeftClick.AddListener(Teleport);
+        teleporter.onRightClick.AddListener(Edit);
     }
 
     public void CloseDoorChanger()

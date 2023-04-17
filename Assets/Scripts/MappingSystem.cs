@@ -6,6 +6,7 @@ using System.Linq;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
+using Object = UnityEngine.Object;
 using Random = UnityEngine.Random;
 
 public class MappingSystem : MonoBehaviour
@@ -18,7 +19,7 @@ public class MappingSystem : MonoBehaviour
     [SerializeField] private Image backgroundImage;
     [SerializeField] private Image backgroundEditorBackground;
     [SerializeField] private Image backgroundBinding;
-    [SerializeField] private Button buttonModel;
+    [SerializeField] private CustomButton buttonModel;
     [SerializeField] private Button backgroundButton;
     [SerializeField] private Sprite hub;
     [SerializeField] private Sprite spriteEditorOn;
@@ -31,8 +32,8 @@ public class MappingSystem : MonoBehaviour
     [SerializeField] private Sprite testArea;
     [SerializeField] private Canvas popupBackground;
     [SerializeField] private Canvas popupBinding;
-    private List<Button> allBackgroundButton = new List<Button>();
-    private List<Button> allBindingButton = new List<Button>();
+    private List<CustomButton> allBackgroundButton = new List<CustomButton>();
+    private List<CustomButton> allBindingButton = new List<CustomButton>();
     string m_Path = "";
     
     public Image BackgroundImage => backgroundImage;
@@ -43,6 +44,7 @@ public class MappingSystem : MonoBehaviour
     public Canvas PopupBinding => popupBinding;
     
     public Area CurrentArea => currentArea;
+    public bool IsEditor => isEditor;
     public void SetCurrentArea(Area _toSet) => currentArea = _toSet;
     public void SetTeleportMode(bool _val) => isTeleportMode = _val;
     private void Start()
@@ -84,7 +86,7 @@ public class MappingSystem : MonoBehaviour
         for (int i = 0; i < _result.Count; i++)
         {
             string _curr = _result[i];
-            Button _created = Instantiate(buttonModel,_pos,Quaternion.identity,backgroundEditorBackground.transform);
+            CustomButton _created = Instantiate(buttonModel,_pos,Quaternion.identity,backgroundEditorBackground.transform);
             RectTransform _rectTransform = _created.transform as RectTransform;
             _rectTransform.anchorMin = new Vector2(0,1);
             _rectTransform.anchorMax = new Vector2(0,1);
@@ -93,7 +95,7 @@ public class MappingSystem : MonoBehaviour
             _rectTransform.position = _pos;
             _created.image.sprite = TextureLoader.LoadNewSprite(_curr);
             allBackgroundButton.Add(_created);
-            _created.onClick.AddListener(delegate { SetBackground(_created.image.sprite,_curr); });
+            _created.onLeftClick.AddListener(delegate { SetBackground(_created.image.sprite,_curr); });
             _pos.y -= 65;
             if (_pos.y < 110)
             {
@@ -108,39 +110,33 @@ public class MappingSystem : MonoBehaviour
     {
         if (isEditor && !isBackgroundMode && !isTeleportMode)
         {
-            if (currentArea.IsUnityNull() || !currentArea.IsValid)
+            Vector3 _mousePos = Input.mousePosition;
+            if(Screen.height-50 < _mousePos.y) 
+                return;
+            if (Input.GetMouseButtonDown(0))
             {
-                if (Input.GetMouseButtonDown(0))
+                if (currentArea.IsUnityNull() || !currentArea.IsValid)
                 {
-                    if(Screen.height-50 < Input.mousePosition.y) 
-                        return;
                     for (int i = 0; i < currentMap.AllAreas.Count; i++)
-                    {
-                        if (Vector3.Distance(currentMap.AllAreas[i].Openner.gameObject.transform.position, Input.mousePosition) < 40) 
+                        if (Vector3.Distance(currentMap.AllAreas[i].Opener.gameObject.transform.position, _mousePos) < 40) 
                             return;
-                    }
-                        
-                    Area _tempo = new Area(Input.mousePosition,currentMap.AllAreas.Count);
+
+                    Area _tempo = new Area(_mousePos,currentMap.AllAreas.Count);
                     _tempo.SetOpenner(AddButton(_tempo.LocationMap,testArea));
                     _tempo.SetOwner(currentMap);
                     _tempo.Init();
                     currentMap.AllAreas.Add(_tempo);
+                    
                 }
-            }
-            else
-            {
-                if (Input.GetMouseButtonDown(0))
+                else
                 {
-                    if(Screen.height-50 < Input.mousePosition.y) 
-                        return;
-                    if (Vector3.Distance(currentArea.BackToHub.gameObject.transform.position, Input.mousePosition) < 60) 
-                        return;
-                    for (int i = 0; i < currentArea.AllDoors.Count; i++)
-                    {
-                        if (Vector3.Distance(currentArea.AllDoors[i].Teleporter.gameObject.transform.position, Input.mousePosition) < 40) 
+                    if (Vector3.Distance(currentArea.BackToHub.gameObject.transform.position, _mousePos) < 60) 
                             return;
-                    }
-                    Door _tempo = new Door(Input.mousePosition);
+                    for (int i = 0; i < currentArea.AllDoors.Count; i++)
+                        if (Vector3.Distance(currentArea.AllDoors[i].Teleporter.gameObject.transform.position, _mousePos) < 40) 
+                            return;
+                    
+                    Door _tempo = new Door(_mousePos);
                     _tempo.SetOwner(currentArea);
                     _tempo.SetTeleporter(AddButton(_tempo.LocationMap,testArea));
                     currentArea.AllDoors.Add(_tempo);
@@ -170,9 +166,7 @@ public class MappingSystem : MonoBehaviour
         isBackgroundMode = !isBackgroundMode;
         popupBackground.gameObject.SetActive(isBackgroundMode);
         if (isBackgroundMode)
-        {
             InitBackground();
-        }
     }
 
     void SetBackground(Sprite _toSet,string _path)
@@ -189,15 +183,15 @@ public class MappingSystem : MonoBehaviour
         }
     }
     
-    public Button AddButton(Vector2 _locationMap,Sprite _sprite)
+    public CustomButton AddButton(Vector2 _locationMap,Sprite _sprite)
     {
-        Button _created = Instantiate(buttonModel,_locationMap,Quaternion.identity,backgroundImage.transform);
+        CustomButton _created = Instantiate(buttonModel,_locationMap,Quaternion.identity,backgroundImage.transform);
         _created.image.sprite = _sprite;
         return _created;
     }
-    public Button AddButton(Vector2 _locationMap)
+    public CustomButton AddButton(Vector2 _locationMap)
     {
-        Button _created = Instantiate(buttonModel,_locationMap,Quaternion.identity,backgroundImage.transform);
+        CustomButton _created = Instantiate(buttonModel,_locationMap,Quaternion.identity,backgroundImage.transform);
         _created.image.sprite = testArea;
         return _created;
     }
@@ -213,7 +207,7 @@ public class MappingSystem : MonoBehaviour
         for (int i = 0; i < currentMap.AllAreas.Count; i++)
         {
             Area _curr = currentMap.AllAreas[i];
-            Button _created = Instantiate(buttonModel,_pos,Quaternion.identity,backgroundBinding.transform);
+            CustomButton _created = Instantiate(buttonModel,_pos,Quaternion.identity,backgroundBinding.transform);
             RectTransform _rectTransform = _created.transform as RectTransform;
             _rectTransform.anchorMin = new Vector2(0,1);
             _rectTransform.anchorMax = new Vector2(0,1);
@@ -222,7 +216,7 @@ public class MappingSystem : MonoBehaviour
             _rectTransform.position = _pos;
             _created.image.sprite = _curr.Background;
             allBindingButton.Add(_created);
-            _created.onClick.AddListener(delegate {currentArea.Selected.AddLink(_curr.ID);});
+            _created.onLeftClick.AddListener(delegate {currentArea.Selected.AddLink(_curr.ID);});
             _pos.y -= 65;
             if (_pos.y < 110)
             {
@@ -241,7 +235,6 @@ public class MappingSystem : MonoBehaviour
     public void Save()
     {
         string _json = JsonUtility.ToJson(currentMap);
-        //Debug.Log(_json);
         File.WriteAllText(m_Path+"/Save.txt",_json);
     }
 
@@ -249,14 +242,24 @@ public class MappingSystem : MonoBehaviour
     {
         for (int i = 0; i < currentMap.AllAreas.Count; i++)
         {
-            Destroy(currentMap.AllAreas[i].Openner.gameObject);
+            currentMap.AllAreas[i].Delete();
         }
         currentMap.AllAreas.Clear();
+        currentArea = null;
+        
+        
         string _json = File.ReadAllText(m_Path + "/Save.txt");
         currentMap = JsonUtility.FromJson<Map>(_json);
-        currentMap.SetOwner(this);
-        RefreshAreaBinder();
+        
         InitBackground();
+        currentMap.SetOwner(this);
         currentMap.Init();
+        RefreshAreaBinder();
     }
+
+    public void MyDestroyObject(GameObject _toDestroy)
+    {
+        Destroy(_toDestroy);
+    }
+
 }

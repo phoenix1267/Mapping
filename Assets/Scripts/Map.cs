@@ -47,7 +47,7 @@ public class Map
     {
         for (int i = 0; i < allAreas.Count; i++)
         {
-            allAreas[i].Openner.gameObject.SetActive(_value);
+            allAreas[i].Opener.gameObject.SetActive(_value);
         }
     }
 
