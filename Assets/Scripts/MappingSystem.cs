@@ -11,7 +11,7 @@ public class MappingSystem : MonoBehaviour
     [SerializeField] private Map currentMap;
     [SerializeField] private Image backgroundImage, backgroundEditorBackground, backgroundBinding, imageToggleEditor;
     [SerializeField] private CustomButton buttonModel;
-    [SerializeField] private Sprite hub, spriteEditorOn, spriteEditorOff, spriteTPon, testArea;
+    [SerializeField] private Sprite hub, spriteEditorOn, spriteEditorOff, spriteTpOn, areaSprite,spriteTpOff;
     [SerializeField] private Button toggleEditor, save, load, backToHub, backgroundButton,unbindButton;
     [SerializeField] private Canvas popupBackground, popupBinding,mainApp;
     private Area currentArea = null;
@@ -20,8 +20,10 @@ public class MappingSystem : MonoBehaviour
     string path = "";
     
     public Image BackgroundImage => backgroundImage;
-    public Sprite SpriteTPon => spriteTPon;
-    public Sprite TestArea => testArea;
+    public Sprite SpriteTPon => spriteTpOn;
+   // public Sprite TestArea => testArea;
+    public Sprite AreaSprite => areaSprite;
+    public Sprite SpriteTpOff => spriteTpOff;
     public Canvas PopupBinding => popupBinding;
     public Canvas MainApp => mainApp;
     public bool IsEditor => isEditor;
@@ -116,7 +118,7 @@ public class MappingSystem : MonoBehaviour
                             return;
 
                     Area _tempo = new Area(_mousePos,currentMap.AllAreas.Count);
-                    _tempo.SetOpenner(AddButton(_tempo.LocationMap,testArea));
+                    _tempo.SetOpenner(AddButton(_tempo.LocationMap,areaSprite));
                     _tempo.SetOwner(currentMap);
                     _tempo.Init();
                     currentMap.AllAreas.Add(_tempo);
@@ -130,7 +132,7 @@ public class MappingSystem : MonoBehaviour
                     
                     Door _tempo = new Door(_mousePos);
                     _tempo.SetOwner(currentArea);
-                    _tempo.Teleporter = AddButton(_tempo.LocationMap,testArea);
+                    _tempo.Teleporter = AddButton(_tempo.LocationMap,spriteTpOff);
                     currentArea.AllDoors.Add(_tempo);
                 }
             }
@@ -189,12 +191,6 @@ public class MappingSystem : MonoBehaviour
     {
         CustomButton _created = Instantiate(buttonModel,_locationMap,Quaternion.identity,backgroundImage.transform);
         _created.image.sprite = _sprite;
-        return _created;
-    }
-    public CustomButton AddButton(Vector2 _locationMap)
-    {
-        CustomButton _created = Instantiate(buttonModel,_locationMap,Quaternion.identity,backgroundImage.transform);
-        _created.image.sprite = testArea;
         return _created;
     }
 

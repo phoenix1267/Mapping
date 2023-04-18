@@ -92,12 +92,12 @@ public class Door
     {
         asLink = false;
         linkedAreaID = 0;
-        teleporter.image.sprite = owningArea.Owner.Owner.TestArea;
+        teleporter.image.sprite = owningArea.Owner.Owner.SpriteTpOff;
     }
     
     public void CreateButton()
     {
-        teleporter = owningArea.Owner.Owner.AddButton(locationMap);
+        teleporter = owningArea.Owner.Owner.AddButton(locationMap,asLink ? owningArea.Owner.Owner.SpriteTPon : owningArea.Owner.Owner.SpriteTpOff);
         teleporter.gameObject.SetActive(false);
         teleporter.onLeftClick.AddListener(Teleport);
         teleporter.onRightClick.AddListener(Edit);

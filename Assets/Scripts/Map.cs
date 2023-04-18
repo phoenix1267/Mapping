@@ -35,7 +35,7 @@ public class Map
     {
         for (int i = 0; i < allAreas.Count; i++)
         {
-            allAreas[i].SetOpenner(owner.AddButton(allAreas[i].LocationMap,owner.TestArea));
+            allAreas[i].SetOpenner(owner.AddButton(allAreas[i].LocationMap,owner.AreaSprite));
         }
     }
 
