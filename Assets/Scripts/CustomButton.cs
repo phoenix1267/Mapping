@@ -19,6 +19,7 @@ public class CustomButton : Button, IPointerClickHandler
             onMiddleClick.Invoke();
         else if (eventData.button == PointerEventData.InputButton.Right)
             onRightClick.Invoke();
+        
     }
 
     protected override void OnDestroy()

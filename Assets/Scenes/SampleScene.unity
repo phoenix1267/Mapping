@@ -3227,6 +3227,7 @@ MonoBehaviour:
   isAreaPlacerMode: 0
   currentMap:
     allAreas: []
+    allDoors: []
     backgroundPath: 
   backgroundImage: {fileID: 1275740264}
   backgroundEditorBackground: {fileID: 1644034207}
@@ -3250,7 +3251,8 @@ MonoBehaviour:
   popupBackground: {fileID: 2122614009}
   popupBinding: {fileID: 715269921}
   mainApp: {fileID: 1502912621}
-  buttonBackgroundColor: {r: 0.5176471, g: 0.5176471, b: 0.5176471, a: 1}
+  buttonBackgroundColorDefault: {r: 0.5176471, g: 0.5176471, b: 0.5176471, a: 1}
+  buttonBackgroundColorActive: {r: 0, g: 0.49056602, b: 0.057726685, a: 1}
 --- !u!4 &1478684646
 Transform:
   m_ObjectHideFlags: 0
