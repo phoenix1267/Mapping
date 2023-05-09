@@ -9,11 +9,11 @@ public class TextureLoader
     public static Sprite LoadNewSprite(string FilePath, float PixelsPerUnit = 100.0f) {
    
         // Load a PNG or JPG image from disk to a Texture2D, assign this texture to a new sprite and return its reference
-        
+        if (FilePath.Length <= 0) return null;
         Texture2D SpriteTexture = LoadTexture(FilePath);
         if (SpriteTexture.IsUnityNull())
         {
-            Debug.Log(FilePath);   
+            //Debug.Log(FilePath);   
             return null;
         }
         Sprite NewSprite = Sprite.Create(SpriteTexture, new Rect(0, 0, SpriteTexture.width, SpriteTexture.height),new Vector2(0,0), PixelsPerUnit);
@@ -39,7 +39,7 @@ public class TextureLoader
         }
         else
         {
-            Debug.Log("File Path is not valid");
+            Debug.Log("Texture File Path is not valid");
         }
         return null;                     // Return null if load failed
     }

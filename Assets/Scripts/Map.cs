@@ -3,13 +3,15 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [Serializable]
-public class Map
+public class Map 
 {
-    [SerializeField] private List<Area> allAreas = new();
+    [SerializeField] private List<SubArea> allAreas = new();
+    [SerializeField] private List<Door> allDoors = new();
     [SerializeField,HideInInspector] private string backgroundPath = "";
     private MappingSystem owner;
     private Sprite fullMap;
-    public List<Area> AllAreas => allAreas;
+    public List<SubArea> AllAreas => allAreas;
+    public List<Door> AllDoors => allDoors;
     public void SetOwner(MappingSystem _owner) => owner = _owner;
 
     public void SetBackground(Sprite _toSet,string _path)

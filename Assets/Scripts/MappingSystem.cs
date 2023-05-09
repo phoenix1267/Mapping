@@ -7,14 +7,15 @@ using UnityEngine.UI;
 
 public class MappingSystem : MonoBehaviour
 {
-    [SerializeField] private bool isEditor = true, isBackgroundMode = false, isTeleportMode = false;
+    [SerializeField] private bool isEditor = true, isBackgroundMode = false, isTeleportMode = false, isDoorPlacerMode = false, isAreaPlacerMode = false;
     [SerializeField] private Map currentMap;
     [SerializeField] private Image backgroundImage, backgroundEditorBackground, backgroundBinding, imageToggleEditor;
     [SerializeField] private CustomButton buttonModel;
     [SerializeField] private Sprite hub, spriteEditorOn, spriteEditorOff, spriteTpOn, areaSprite,spriteTpOff;
-    [SerializeField] private Button toggleEditor, save, load, backToHub, backgroundButton,unbindButton;
+    [SerializeField] private Button toggleEditor, save, load, backToHub, backgroundButton,unbindButton,toggleDoor,toggleArea;
     [SerializeField] private Canvas popupBackground, popupBinding,mainApp;
-    private Area currentArea = null;
+    [SerializeField] private Color buttonBackgroundColorDefault,buttonBackgroundColorActive;
+    private SubArea currentSubArea = null;
     private List<CustomButton> allBackgroundButton = new();
     private List<CustomButton> allBindingButton = new();
     string path = "";
@@ -29,9 +30,9 @@ public class MappingSystem : MonoBehaviour
     public bool IsEditor => isEditor;
     public bool IsBackgroundMode => isBackgroundMode;
 
-    public void SetCurrentArea(Area _toSet)
+    public void SetCurrentArea(SubArea _toSet)
     {
-        currentArea = _toSet;
+        currentSubArea = _toSet;
         backToHub.gameObject.SetActive(true);
     }
     public void SetTeleportMode(bool _val) => isTeleportMode = _val;
@@ -42,7 +43,7 @@ public class MappingSystem : MonoBehaviour
         InitBackground();
         RefreshAreaBinder();
         InitButton();
-        currentArea = null;
+        currentSubArea = null;
         currentMap.SetOwner(this);
         currentMap.Init();
         toggleEditor.onClick.AddListener(ToggleEditor);
@@ -53,12 +54,12 @@ public class MappingSystem : MonoBehaviour
 
     void UnbindDoor()
     {
-        currentArea.Selected.Unbind();
+        currentSubArea.Selected.Unbind();
     }
     
     void CloseCurrentArea()
     {
-        currentArea.Close();
+        currentSubArea.BackToHubClose();
         backToHub.gameObject.SetActive(false);
 
     }
@@ -68,6 +69,8 @@ public class MappingSystem : MonoBehaviour
         backgroundButton.gameObject.SetActive(isEditor);
         save.gameObject.SetActive(isEditor);
         load.gameObject.SetActive(isEditor);
+        toggleArea.gameObject.SetActive(isEditor);
+        toggleDoor.gameObject.SetActive(isEditor);
     }
     
     public void InitBackground()
@@ -111,29 +114,48 @@ public class MappingSystem : MonoBehaviour
                 return;
             if (Input.GetMouseButtonDown(0))
             {
-                if (currentArea.IsUnityNull() || !currentArea.IsValid)
+                if (isAreaPlacerMode)
                 {
-                    for (int i = 0; i < currentMap.AllAreas.Count; i++)
-                        if (Vector3.Distance(currentMap.AllAreas[i].Opener.gameObject.transform.position, _mousePos) < 40) 
-                            return;
+                    if (currentSubArea.IsUnityNull() || !currentSubArea.IsValid)
+                    {
+                        for (int i = 0; i < currentMap.AllAreas.Count; i++)
+                            if (Vector3.Distance(currentMap.AllAreas[i].Opener.gameObject.transform.position, _mousePos) < 40) 
+                                return;
+                    }
+                    else
+                    {
+                        for (int i = 0; i < currentSubArea.AllAreas.Count; i++)
+                            if (Vector3.Distance(currentSubArea.AllAreas[i].Opener.gameObject.transform.position, _mousePos) < 40) 
+                                return;
+                    }
 
-                    Area _tempo = new Area(_mousePos,currentMap.AllAreas.Count);
+                    SubArea _tempo = new SubArea(_mousePos,currentMap.AllAreas.Count);
                     _tempo.SetOpenner(AddButton(_tempo.LocationMap,areaSprite));
                     _tempo.SetOwner(currentMap);
                     _tempo.Init();
-                    currentMap.AllAreas.Add(_tempo);
-                    
+                    if (currentSubArea.IsUnityNull() || !currentSubArea.IsValid)
+                    {
+                        currentMap.AllAreas.Add(_tempo);
+                    }
+                    else
+                    {
+                        _tempo.Opener.onLeftClick.AddListener(currentSubArea.CloseArea);
+                        currentSubArea.AllAreas.Add(_tempo);
+                    }
                 }
-                else
+                else if (isDoorPlacerMode && !currentSubArea.IsUnityNull() && currentSubArea.IsValid)
                 {
-                    for (int i = 0; i < currentArea.AllDoors.Count; i++)
-                        if (Vector3.Distance(currentArea.AllDoors[i].Teleporter.gameObject.transform.position, _mousePos) < 40) 
-                            return;
                     
+                    for (int i = 0; i < currentSubArea.AllDoors.Count; i++)
+                        if (Vector3.Distance(currentSubArea.AllDoors[i].Teleporter.gameObject.transform.position, _mousePos) < 40) 
+                            return;
                     Door _tempo = new Door(_mousePos);
-                    _tempo.SetOwner(currentArea);
+                    _tempo.SetOwner(currentSubArea);
                     _tempo.Teleporter = AddButton(_tempo.LocationMap,spriteTpOff);
-                    currentArea.AllDoors.Add(_tempo);
+                    currentSubArea.AllDoors.Add(_tempo);
+                    
+                    
+
                 }
             }
         }
@@ -145,17 +167,20 @@ public class MappingSystem : MonoBehaviour
         if (isEditor)
         {
             imageToggleEditor.sprite = spriteEditorOn;
-
+            toggleEditor.image.color = buttonBackgroundColorActive;
         }
         else
         {
             imageToggleEditor.sprite = spriteEditorOff;
             if(isBackgroundMode)
                 ToggleBackgroundEditor();
+            toggleEditor.image.color = buttonBackgroundColorDefault;
         }
         backgroundButton.gameObject.SetActive(isEditor);
         save.gameObject.SetActive(isEditor);
         load.gameObject.SetActive(isEditor);
+        toggleArea.gameObject.SetActive(isEditor);
+        toggleDoor.gameObject.SetActive(isEditor);
     }
 
     public void ToggleBackgroundEditor()
@@ -163,6 +188,9 @@ public class MappingSystem : MonoBehaviour
         if (isTeleportMode) return;
         isBackgroundMode = !isBackgroundMode;
         popupBackground.gameObject.SetActive(isBackgroundMode);
+        
+        backgroundButton.image.color = isBackgroundMode ? buttonBackgroundColorActive : buttonBackgroundColorDefault;
+        
         if (isBackgroundMode)
             InitBackground();
     }
@@ -175,15 +203,15 @@ public class MappingSystem : MonoBehaviour
     
     void SetBackground(Sprite _toSet,string _path)
     {
-        if (currentArea.IsUnityNull() || !currentArea.IsValid)
+        if (currentSubArea.IsUnityNull() || !currentSubArea.IsValid)
         {
             currentMap.SetBackground(_toSet, _path);
             currentMap.ChangeBackground();
         }
         else
         {
-            currentArea.SetBackground(_toSet,_path);
-            currentArea.ChangeBackground();
+            currentSubArea.SetBackground(_toSet,_path);
+            currentSubArea.ChangeBackground();
         }
     }
     
@@ -204,7 +232,7 @@ public class MappingSystem : MonoBehaviour
         Vector2 _pos = new Vector2(210, 430);
         for (int i = 0; i < currentMap.AllAreas.Count; i++)
         {
-            Area _curr = currentMap.AllAreas[i];
+            SubArea _curr = currentMap.AllAreas[i];
             CustomButton _created = Instantiate(buttonModel,_pos,Quaternion.identity,backgroundBinding.transform);
             RectTransform _rectTransform = _created.transform as RectTransform;
             _rectTransform.anchorMin = new Vector2(0,1);
@@ -214,7 +242,7 @@ public class MappingSystem : MonoBehaviour
             //_rectTransform.position = _pos;
             _created.image.sprite = _curr.Background;
             allBindingButton.Add(_created);
-            _created.onLeftClick.AddListener(delegate {currentArea.Selected.AddLink(_curr.ID);});
+            _created.onLeftClick.AddListener(delegate {currentSubArea.Selected.AddLink(_curr.ID);});
             /*_pos.y -= 65;
             if (_pos.y < 110)
             {
@@ -227,8 +255,8 @@ public class MappingSystem : MonoBehaviour
     public void ClosePopupBinding()
     {
         popupBinding.gameObject.SetActive(false);
-        if(!currentArea.IsUnityNull() && !currentArea.Selected.IsUnityNull())
-            currentArea.Selected.CloseDoorChanger();
+        if(!currentSubArea.IsUnityNull() && !currentSubArea.Selected.IsUnityNull())
+            currentSubArea.Selected.CloseDoorChanger();
 
     }
 
@@ -241,11 +269,11 @@ public class MappingSystem : MonoBehaviour
     public void Load()
     {
         for (int i = 0; i < currentMap.AllAreas.Count; i++)
-        {
             currentMap.AllAreas[i].Delete();
-        }
+        for (int i = 0; i < currentMap.AllDoors.Count; i++)
+            currentMap.AllDoors[i].Remove();
         currentMap.AllAreas.Clear();
-        currentArea = null;
+        currentSubArea = null;
         backToHub.gameObject.SetActive(false);
         isTeleportMode = false;
         isBackgroundMode = false;
@@ -264,4 +292,30 @@ public class MappingSystem : MonoBehaviour
         Destroy(_toDestroy);
     }
 
+    public void ToggleAreaMode()
+    {
+        isAreaPlacerMode = !isAreaPlacerMode;
+        if (isAreaPlacerMode)
+        {
+            isDoorPlacerMode = false;
+            toggleDoor.image.color = buttonBackgroundColorDefault;
+            toggleArea.image.color = buttonBackgroundColorActive;
+        }
+        else
+            toggleArea.image.color = buttonBackgroundColorDefault;
+    }
+    public void ToggleDoorMode()
+    {
+        isDoorPlacerMode = !isDoorPlacerMode;
+        if (isDoorPlacerMode)
+        {
+            isAreaPlacerMode = false;
+            toggleArea.image.color = buttonBackgroundColorDefault;
+            toggleDoor.image.color = buttonBackgroundColorActive;
+        }
+        else
+            toggleDoor.image.color = buttonBackgroundColorDefault;
+    }
+    
+    
 }

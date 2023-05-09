@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [Serializable]
-public class Area
+public class SubArea
 {
     [SerializeField] private string spritePath = "";
     [SerializeField] private List<Door> allDoors = new();
+    [SerializeField] private List<SubArea> allAreas = new();
     [SerializeField] private Vector2 locationMap = new(0, 0);
     [SerializeField] private bool isValid = false;
     [SerializeField] private int id = 0;
@@ -21,6 +22,7 @@ public class Area
     public bool IsValid => isValid;
     public int ID => id;
     public List<Door> AllDoors => allDoors;
+    public List<SubArea> AllAreas => allAreas;
     public Map Owner => owner;
 
     public void SetSelected(Door _door) => selected = _door;
@@ -31,10 +33,10 @@ public class Area
         background = _toSet;
     }
     public Sprite Background => background;
-    public Area()
+    public SubArea()
     {}
 
-    public Area(Vector2 _pos,int _id)
+    public SubArea(Vector2 _pos,int _id)
     {
         locationMap = _pos;
         id = _id;
@@ -83,19 +85,23 @@ public class Area
         if(!owner.Owner.IsEditor)return;
         for (int i = 0; i < allDoors.Count;i++)
             allDoors[i].Remove();
+        for (int i = 0; i < allAreas.Count;i++)
+            allAreas[i].Delete();
         owner.Owner.MyDestroyObject(opener.gameObject);
     }
     
     public void DeleteForButton()
     {
         if(!owner.Owner.IsEditor)return;
+        for (int i = 0; i < allAreas.Count;i++)
+            allAreas[i].Delete();
         for (int i = 0; i < allDoors.Count;i++)
             allDoors[i].Remove();
         owner.AllAreas.Remove(this);
         owner.Owner.MyDestroyObject(opener.gameObject);
     }
     
-    public void Close()
+    public void BackToHubClose()
     {
         owner.ChangeVisibilityButton(true);
         owner.ChangeBackground();
@@ -103,10 +109,17 @@ public class Area
         ChangeDoorsVisibility(false);
     }
 
+    public void CloseArea()
+    {
+        ChangeDoorsVisibility(false);
+    }
+
     void ChangeDoorsVisibility(bool _visibility)
     {
         for (int i = 0; i < allDoors.Count; i++)
             allDoors[i].Teleporter.gameObject.SetActive(_visibility);
+        for (int i = 0; i < allAreas.Count; i++)
+            allAreas[i].Opener.gameObject.SetActive(_visibility);
     }
 
     public void ChangeBackground()
