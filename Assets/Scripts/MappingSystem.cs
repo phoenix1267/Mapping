@@ -12,7 +12,7 @@ public class MappingSystem : MonoBehaviour
     [SerializeField] private Image backgroundImage, backgroundEditorBackground, backgroundBinding, imageToggleEditor;
     [SerializeField] private CustomButton buttonModel;
     [SerializeField] private Sprite hub, spriteEditorOn, spriteEditorOff, spriteTpOn, areaSprite,spriteTpOff;
-    [SerializeField] private Button toggleEditor, save, load, backToHub, backgroundButton,unbindButton,toggleDoor,toggleArea;
+    [SerializeField] private Button toggleEditor, save, load, backToHub, backgroundButton,unbindButton,toggleDoor,toggleArea,reloadBackgroundData;
     [SerializeField] private Canvas popupBackground, popupBinding,mainApp;
     [SerializeField] private Color buttonBackgroundColorDefault,buttonBackgroundColorActive;
     private SubArea currentSubArea = null;
@@ -71,6 +71,7 @@ public class MappingSystem : MonoBehaviour
         load.gameObject.SetActive(isEditor);
         toggleArea.gameObject.SetActive(isEditor);
         toggleDoor.gameObject.SetActive(isEditor);
+        reloadBackgroundData.gameObject.SetActive(isEditor);
     }
     
     public void InitBackground()
@@ -127,6 +128,9 @@ public class MappingSystem : MonoBehaviour
                         for (int i = 0; i < currentSubArea.AllAreas.Count; i++)
                             if (Vector3.Distance(currentSubArea.AllAreas[i].Opener.gameObject.transform.position, _mousePos) < 40) 
                                 return;
+                        for (int i = 0; i < currentSubArea.AllDoors.Count; i++)
+                            if (Vector3.Distance(currentSubArea.AllDoors[i].Teleporter.gameObject.transform.position, _mousePos) < 40) 
+                                return;
                     }
 
                     SubArea _tempo = new SubArea(_mousePos,currentMap.AllAreas.Count);
@@ -139,13 +143,13 @@ public class MappingSystem : MonoBehaviour
                     }
                     else
                     {
+                        _tempo.SetSubOwner(currentSubArea);
                         _tempo.Opener.onLeftClick.AddListener(currentSubArea.CloseArea);
                         currentSubArea.AllAreas.Add(_tempo);
                     }
                 }
                 else if (isDoorPlacerMode && !currentSubArea.IsUnityNull() && currentSubArea.IsValid)
                 {
-                    
                     for (int i = 0; i < currentSubArea.AllDoors.Count; i++)
                         if (Vector3.Distance(currentSubArea.AllDoors[i].Teleporter.gameObject.transform.position, _mousePos) < 40) 
                             return;
@@ -153,9 +157,6 @@ public class MappingSystem : MonoBehaviour
                     _tempo.SetOwner(currentSubArea);
                     _tempo.Teleporter = AddButton(_tempo.LocationMap,spriteTpOff);
                     currentSubArea.AllDoors.Add(_tempo);
-                    
-                    
-
                 }
             }
         }
@@ -181,6 +182,7 @@ public class MappingSystem : MonoBehaviour
         load.gameObject.SetActive(isEditor);
         toggleArea.gameObject.SetActive(isEditor);
         toggleDoor.gameObject.SetActive(isEditor);
+        reloadBackgroundData.gameObject.SetActive(isEditor);
     }
 
     public void ToggleBackgroundEditor()
@@ -188,11 +190,7 @@ public class MappingSystem : MonoBehaviour
         if (isTeleportMode) return;
         isBackgroundMode = !isBackgroundMode;
         popupBackground.gameObject.SetActive(isBackgroundMode);
-        
         backgroundButton.image.color = isBackgroundMode ? buttonBackgroundColorActive : buttonBackgroundColorDefault;
-        
-        if (isBackgroundMode)
-            InitBackground();
     }
 
     public void CloseBackgroundEditor()
@@ -230,34 +228,40 @@ public class MappingSystem : MonoBehaviour
         }
         allBindingButton.Clear();
         Vector2 _pos = new Vector2(210, 430);
+        currentMap.AllAreasGlobal.Clear();
         for (int i = 0; i < currentMap.AllAreas.Count; i++)
         {
-            SubArea _curr = currentMap.AllAreas[i];
-            CustomButton _created = Instantiate(buttonModel,_pos,Quaternion.identity,backgroundBinding.transform);
-            RectTransform _rectTransform = _created.transform as RectTransform;
-            _rectTransform.anchorMin = new Vector2(0,1);
-            _rectTransform.anchorMax = new Vector2(0,1);
-            _rectTransform.pivot = new Vector2(0, 1);
-            //_rectTransform.localScale = new Vector3(2, 2, 1);
-            //_rectTransform.position = _pos;
-            _created.image.sprite = _curr.Background;
-            allBindingButton.Add(_created);
-            _created.onLeftClick.AddListener(delegate {currentSubArea.Selected.AddLink(_curr.ID);});
-            /*_pos.y -= 65;
-            if (_pos.y < 110)
+            currentMap.AllAreasGlobal.Add(currentMap.AllAreas[i]);
+            List<SubArea> _curr = currentMap.AllAreas[i].GetAllUnderAreas();
+            for (int j = 0; j < _curr.Count; j++)
             {
-                _pos.y = 430;
-                _pos.x += 65;
-            }*/
+                currentMap.AllAreasGlobal.Add(_curr[j]);
+            }
+        }
+        
+        for (int i = 0; i < currentMap.AllAreasGlobal.Count; i++)
+        {
+            CreateAreaBinderButton(currentMap.AllAreasGlobal[i], _pos);
         }
     }
 
+    void CreateAreaBinderButton(SubArea _curr,Vector2 _pos)
+    {
+        CustomButton _created = Instantiate(buttonModel,_pos,Quaternion.identity,backgroundBinding.transform);
+        RectTransform _rectTransform = _created.transform as RectTransform;
+        _rectTransform.anchorMin = new Vector2(0,1);
+        _rectTransform.anchorMax = new Vector2(0,1);
+        _rectTransform.pivot = new Vector2(0, 1);
+        _created.image.sprite = _curr.Background;
+        allBindingButton.Add(_created);
+        _created.onLeftClick.AddListener(delegate {currentSubArea.Selected.AddLink(_curr.ID);});
+    }
+    
     public void ClosePopupBinding()
     {
         popupBinding.gameObject.SetActive(false);
         if(!currentSubArea.IsUnityNull() && !currentSubArea.Selected.IsUnityNull())
             currentSubArea.Selected.CloseDoorChanger();
-
     }
 
     public void Save()
@@ -316,6 +320,5 @@ public class MappingSystem : MonoBehaviour
         else
             toggleDoor.image.color = buttonBackgroundColorDefault;
     }
-    
-    
+
 }

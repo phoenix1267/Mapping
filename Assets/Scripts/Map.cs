@@ -5,12 +5,13 @@ using UnityEngine;
 [Serializable]
 public class Map 
 {
-    [SerializeField] private List<SubArea> allAreas = new();
+    [SerializeField] private List<SubArea> allAreas = new(),allAreasGlobal = new();
     [SerializeField] private List<Door> allDoors = new();
     [SerializeField,HideInInspector] private string backgroundPath = "";
     private MappingSystem owner;
     private Sprite fullMap;
     public List<SubArea> AllAreas => allAreas;
+    public List<SubArea> AllAreasGlobal => allAreasGlobal;
     public List<Door> AllDoors => allDoors;
     public void SetOwner(MappingSystem _owner) => owner = _owner;
 
@@ -37,7 +38,8 @@ public class Map
     {
         for (int i = 0; i < allAreas.Count; i++)
         {
-            allAreas[i].SetOpenner(owner.AddButton(allAreas[i].LocationMap,owner.AreaSprite));
+            //allAreas[i].SetOpenner(owner.AddButton(allAreas[i].LocationMap,owner.AreaSprite));
+            allAreas[i].InitOpenners();
         }
     }
 

@@ -8,7 +8,7 @@ public class Door
     [SerializeField] private bool asLink = false;
     [SerializeField] private int linkedAreaID = 0;
     [SerializeField] private Vector2 locationMap = new Vector2(0, 0);
-    private SubArea owningSubArea;
+    [NonSerialized] private SubArea owningSubArea;
     private CustomButton teleporter;
     public void SetOwner(SubArea _owner) => owningSubArea = _owner;
     public Vector2 LocationMap => locationMap;
@@ -47,7 +47,15 @@ public class Door
         if (asLink)
         {
             owningSubArea.BackToHubClose();
-            owningSubArea.Owner.AllAreas[linkedAreaID].Open();
+            for (int i = 0; i < owningSubArea.Owner.AllAreasGlobal.Count; i++)
+            {
+                if (owningSubArea.Owner.AllAreasGlobal[i].ID == linkedAreaID)
+                {
+                    owningSubArea.Owner.AllAreasGlobal[i].Open();
+                    break;
+                }
+            }
+            //owningSubArea.Owner.AllAreasGlobal[linkedAreaID].Open();
         }
         else
             EditTeleporterDestination();

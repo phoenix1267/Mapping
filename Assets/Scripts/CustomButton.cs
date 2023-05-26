@@ -11,7 +11,7 @@ public class CustomButton : Button, IPointerClickHandler
     public UnityEvent onRightClick = new UnityEvent();
     public UnityEvent onMiddleClick = new UnityEvent();
     
-    public void OnPointerClick(PointerEventData eventData)
+    public new void OnPointerClick(PointerEventData eventData)
     {
         if (eventData.button == PointerEventData.InputButton.Left)
             onLeftClick.Invoke();
